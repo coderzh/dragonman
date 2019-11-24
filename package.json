@@ -1,0 +1,29 @@
+{
+  "name": "dragonman",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/bundle.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --open",
+    "build": "gulp"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "del": "^5.1.0",
+    "gulp": "^4.0.2",
+    "gulp-print": "^5.0.2",
+    "gulp-util": "^3.0.8",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.7.2",
+    "vinyl-paths": "^3.0.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.4.1"
+  },
+  "dependencies": {
+    "@types/gl-matrix": "^2.4.5",
+    "gl-matrix": "^3.0.0"
+  }
+}
