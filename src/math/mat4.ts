@@ -16,9 +16,10 @@ export class Mat4 {
 
   translate(x: number, y: number, z: number) {
     var e = this.elements_;
-    e[12] += x;
-    e[13] += y;
-    e[14] += z;
+    e[12] += e[0] * x + e[4] * y + e[8] * z;
+    e[13] += e[1] * x + e[5] * y + e[9] * z;
+    e[14] += e[2] * x + e[6] * y + e[10] * z;
+    e[15] += e[3] * x + e[7] * y + e[11] * z;
   }
 
   mul(other: Mat4) {
@@ -77,6 +78,113 @@ export class Mat4 {
     var m = new Mat4();
     var e = m.elements_;
     e[0] = s; e[5] = s; e[10] = s;
+    this.mul(m);
+  }
+
+  perspective(fovy: number, aspect: number, near: number, far: number) {
+    var m = new Mat4();
+    var e, rd, s, ct;
+
+    if (near === far || aspect === 0) {
+      throw 'null frustum';
+    }
+    if (near <= 0) {
+      throw 'near <= 0';
+    }
+    if (far <= 0) {
+      throw 'far <= 0';
+    }
+  
+    fovy = Math.PI * fovy / 180 / 2;
+    s = Math.sin(fovy);
+    if (s === 0) {
+      throw 'null frustum';
+    }
+  
+    rd = 1 / (far - near);
+    ct = Math.cos(fovy) / s;
+  
+    e = m.elements_;
+  
+    e[0]  = ct / aspect;
+    e[1]  = 0;
+    e[2]  = 0;
+    e[3]  = 0;
+  
+    e[4]  = 0;
+    e[5]  = ct;
+    e[6]  = 0;
+    e[7]  = 0;
+  
+    e[8]  = 0;
+    e[9]  = 0;
+    e[10] = -(far + near) * rd;
+    e[11] = -1;
+  
+    e[12] = 0;
+    e[13] = 0;
+    e[14] = -2 * near * far * rd;
+    e[15] = 0;
+
+    this.mul(m);
+  } 
+  
+  lookAt(eyeX: number, eyeY: number, eyeZ: number,
+    centerX: number, centerY: number, centerZ: number,
+    upX: number, upY: number, upZ: number) {
+    var m = new Mat4();
+    var e, fx, fy, fz, rlf, sx, sy, sz, rls, ux, uy, uz;
+
+    fx = centerX - eyeX;
+    fy = centerY - eyeY;
+    fz = centerZ - eyeZ;
+
+    // Normalize f.
+    rlf = 1 / Math.sqrt(fx * fx + fy * fy + fz * fz);
+    fx *= rlf;
+    fy *= rlf;
+    fz *= rlf;
+
+    // Calculate cross product of f and up.
+    sx = fy * upZ - fz * upY;
+    sy = fz * upX - fx * upZ;
+    sz = fx * upY - fy * upX;
+
+    // Normalize s.
+    rls = 1 / Math.sqrt(sx * sx + sy * sy + sz * sz);
+    sx *= rls;
+    sy *= rls;
+    sz *= rls;
+
+    // Calculate cross product of s and f.
+    ux = sy * fz - sz * fy;
+    uy = sz * fx - sx * fz;
+    uz = sx * fy - sy * fx;
+
+    // Set to this.
+    e = m.elements_;
+    e[0] = sx;
+    e[1] = ux;
+    e[2] = -fx;
+    e[3] = 0;
+
+    e[4] = sy;
+    e[5] = uy;
+    e[6] = -fy;
+    e[7] = 0;
+
+    e[8] = sz;
+    e[9] = uz;
+    e[10] = -fz;
+    e[11] = 0;
+
+    e[12] = 0;
+    e[13] = 0;
+    e[14] = 0;
+    e[15] = 1;
+
+    // Translate.
+    m.translate(-eyeX, -eyeY, -eyeZ);
     this.mul(m);
   }
 }
