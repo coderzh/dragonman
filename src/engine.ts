@@ -5,21 +5,20 @@ import { Mat4 } from './math/mat4'
 
 export class Engine {
   private canvas_: HTMLCanvasElement;
-  private shader_: Shader;
   private gl_: WebGLRenderingContext;
   private sprite_: Sprite;
+  private shader_: Shader;
 
   constructor() {
-
+    this.canvas_ = document.getElementById("glCanvas") as HTMLCanvasElement;
+    this.gl_ = GLUtils.init(this.canvas_);
+    this.sprite_ = new Sprite(this.canvas_, this.gl_, 100, 100);
+    this.shader_ = this.loadShader();
   }
 
   start() {
-    this.canvas_ = document.getElementById("glCanvas") as HTMLCanvasElement;
-    this.gl_ = GLUtils.init(this.canvas_);
     this.gl_.clearColor(0, 0, 0, 1);
-    this.loadShader();
     this.shader_.use();
-    this.sprite_ = new Sprite(this.gl_, 100, 100);
     this.resize();
     this.loop();
   }
@@ -43,12 +42,8 @@ export class Engine {
     this.gl_.uniformMatrix4fv(projectionLocation, false, new Float32Array(projection.data));
 
     let modelViewLocation = this.shader_.getUniformLocation("u_modelView");
-
-    let modelView = new Mat4();
-    modelView.translate(0, 0, -5);
-    modelView.rotate(0, 0, 90);
-    modelView.scale(2);
-    this.gl_.uniformMatrix4fv(modelViewLocation, false, new Float32Array(modelView.data));
+    let spriteModelView = this.sprite_.modelView();
+    this.gl_.uniformMatrix4fv(modelViewLocation, false, spriteModelView);
 
     this.sprite_.draw();
     requestAnimationFrame(this.loop.bind(this));
@@ -68,6 +63,6 @@ uniform vec4 u_color;
 void main() {
   gl_FragColor = u_color;
 }`;
-    this.shader_ = new Shader("basic", this.gl_, vsSource, fsSource);
+    return new Shader("basic", this.gl_, vsSource, fsSource);
   }
 }

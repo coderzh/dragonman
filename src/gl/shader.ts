@@ -10,7 +10,7 @@ export class Shader {
     this.name_ = name;
     let vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vsSource);
     let fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    this.createProgram(gl, vertexShader, fragmentShader);
+    this.program_ = this.createProgram(gl, vertexShader, fragmentShader);
     this.detectAttributes();
     this.detectUniforms();
   }
@@ -39,25 +39,34 @@ export class Shader {
 
   private loadShader(gl: WebGLRenderingContext, shaderType: number, source: string): WebGLShader {
     const shader = gl.createShader(shaderType);
+    if (!shader) {
+      throw new Error(`createShader type '${shaderType}' failed`);
+    }
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
       gl.deleteShader(shader);
-      return null;
+      throw new Error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
     }
 
     return shader;
   }
 
-  private createProgram(gl: WebGLRenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader): void {
-    this.program_ = gl.createProgram();
-    gl.attachShader(this.program_, vertexShader);
-    gl.attachShader(this.program_, fragmentShader);
-    gl.linkProgram(this.program_);
-    if (!gl.getProgramParameter(this.program_, gl.LINK_STATUS)) {
-      console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(this.program_));
+  private createProgram(gl: WebGLRenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+    let program = gl.createProgram();
+    if (program == null) {
+      throw new Error('createProgram failed');
     }
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(
+        'Unable to initialize the shader program: ' +
+          gl.getProgramInfoLog(program)
+      );
+    }
+    return program;
   }
 
   private detectAttributes() {
@@ -78,7 +87,10 @@ export class Shader {
       if (!uniform) {
         continue;
       }
-      this.uniforms_[uniform.name] = this.gl_.getUniformLocation(this.program_, uniform.name);
+      const location = this.gl_.getUniformLocation(this.program_, uniform.name);
+      if (location) {
+        this.uniforms_[uniform.name] = location;
+      }
     }
   }
 }

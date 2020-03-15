@@ -1,7 +1,7 @@
 export class AttributeInfo {
-  location: number;
-  size: number;
-  offset: number;
+  location!: number;
+  size: number  =  0;
+  offset: number = 0;
 }
 
 export class GLBuffer {
@@ -11,12 +11,12 @@ export class GLBuffer {
   private dataType_: number;
   private typeSize_: number;
   private stride_: GLsizei;
-  private offset_: GLintptr;
+  // private offset_: GLintptr;
   private drawMode_: number;
-  private buffer_: WebGLBuffer;
+  private buffer_: WebGLBuffer | null;
   private attributeInfos_: AttributeInfo[] = [];
   private hasAttributeInfo_: boolean = false;
-  private drawCount_: number;
+  private drawCount_: number = 0;
 
   constructor(gl: WebGLRenderingContext, elementSize: number, targetBufferType: number = gl.ARRAY_BUFFER, 
     dataType: number = gl.FLOAT, drawMode: number = gl.TRIANGLES) {
@@ -60,7 +60,7 @@ export class GLBuffer {
   }
 
   unbind() {
-    this.gl_.bindBuffer(this.targetBufferType_, undefined);
+    this.gl_.bindBuffer(this.targetBufferType_, null);
   }
 
   draw() {
